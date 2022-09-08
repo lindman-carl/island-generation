@@ -3,4 +3,4 @@ export type Point = {
   y: number;
 };
 
-export type Array2D = number[][];
+export type WorldMap = number[][];
