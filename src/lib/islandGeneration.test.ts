@@ -2,7 +2,12 @@ import { exportedForTesting } from "./islandGeneration.js";
 import { Point } from "../types.js";
 import { findVariance } from "./utils/testingUtils.js";
 
-const { createBlankWorldMap, getRandomClusterPoint } = exportedForTesting;
+const {
+  createBlankWorldMap,
+  getRandomClusterPoint,
+  expandPoint,
+  getRandomCenterPoint,
+} = exportedForTesting;
 
 describe("createBlankWorldMap", () => {
   test("should return height*width number of elements", () => {
@@ -76,18 +81,50 @@ describe("getRandomClusterPoint", () => {
     expect(xOffset).toBeLessThan(0.5);
     expect(yOffset).toBeLessThan(0.5);
 
+    // calculate standard deviation
     const xVariance = findVariance(results.x);
     const yVariance = findVariance(results.y);
-
-    console.log(xVariance, yVariance);
-
     const xStandardDeviation = Math.sqrt(xVariance);
     const yStandardDeviation = Math.sqrt(yVariance);
-
-    console.log(xStandardDeviation, yStandardDeviation);
 
     // expect low for linear data
     expect(xStandardDeviation).toBeLessThan(0.5);
     expect(yStandardDeviation).toBeLessThan(0.5);
+  });
+});
+
+describe("expandPoint", () => {
+  const TEST_WIDTH = 20;
+  const TEST_HEIGHT = 20;
+  const TEST_RADIUS = 2;
+
+  // get man random points
+  const expandedPoints: Point[][] = Array(100)
+    .fill(0)
+    .map((_) => {
+      const randomPoint = getRandomCenterPoint(TEST_WIDTH, TEST_HEIGHT);
+      return expandPoint(randomPoint, TEST_WIDTH, TEST_HEIGHT, TEST_RADIUS);
+    });
+
+  test("all points are within boundaries", () => {
+    expandedPoints.forEach((pointArray) => {
+      pointArray.forEach((point) => {
+        // expect all points coordinates to be within map boundaries
+        expect(point.x).toBeGreaterThanOrEqual(0);
+        expect(point.y).toBeGreaterThanOrEqual(0);
+        expect(point.x).toBeLessThan(TEST_WIDTH);
+        expect(point.y).toBeLessThan(TEST_HEIGHT);
+      });
+    });
+  });
+
+  test("expect no duplicate points", () => {
+    expandedPoints.forEach((pointArray) => {
+      // remove duplicates
+      const noDuplicates = [...new Set(pointArray)];
+
+      // expect no change in length
+      expect(pointArray.length).toBe(noDuplicates.length);
+    });
   });
 });

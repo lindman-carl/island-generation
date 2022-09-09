@@ -1,5 +1,17 @@
 import { WorldMap, Point } from "../types.js";
 
+const getRandomCenterPoint = (mapWidth: number, mapHeight: number): Point => {
+  const randomX = Math.floor(Math.random() * mapWidth);
+  const randomY = Math.floor(Math.random() * mapHeight);
+
+  const centerPoint: Point = {
+    x: randomX,
+    y: randomY,
+  };
+
+  return centerPoint;
+};
+
 export const printIslandMap = (map: WorldMap) => {
   for (let y = 0; y < map.length; y++) {
     console.log(
@@ -104,10 +116,7 @@ const generateIsland = (
   const blankIslandMap = createBlankWorldMap(mapWidth, mapHeight);
 
   // generates a random center point for the island
-  const centerPoint: Point = {
-    x: Math.floor(Math.random() * mapWidth),
-    y: Math.floor(Math.random() * mapHeight),
-  };
+  const centerPoint = getRandomCenterPoint(mapWidth, mapHeight);
 
   // array of points that will be used to generate the island
   const clusterPoints: Point[] = [centerPoint];
@@ -344,4 +353,6 @@ export const generateIslandMap = (
 export const exportedForTesting = {
   createBlankWorldMap,
   getRandomClusterPoint,
+  expandPoint,
+  getRandomCenterPoint,
 };
