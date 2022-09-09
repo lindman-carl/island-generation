@@ -34,8 +34,8 @@ const getRandomClusterPoint = (
   // larger clusterSpread means larger islands
 
   // randomize position offset
-  const xoff = Math.floor(Math.random() * clusterSpread) - clusterSpread * 0.5;
-  const yoff = Math.floor(Math.random() * clusterSpread) - clusterSpread * 0.5;
+  const xoff = Math.round(Math.random() * clusterSpread) - clusterSpread * 0.5;
+  const yoff = Math.round(Math.random() * clusterSpread) - clusterSpread * 0.5;
 
   // create new point
   const randomPoint: Point = {
@@ -341,4 +341,7 @@ export const generateIslandMap = (
   }
 };
 
-export const exportedForTesting = { createBlankWorldMap };
+export const exportedForTesting = {
+  createBlankWorldMap,
+  getRandomClusterPoint,
+};
