@@ -340,3 +340,5 @@ export const generateIslandMap = (
     }
   }
 };
+
+export const exportedForTesting = { createBlankWorldMap };
