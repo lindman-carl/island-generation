@@ -160,7 +160,6 @@ describe("generateIsland", () => {
         return acc;
       }, 0);
     });
-    console.log(islandMap, numLandTiles);
 
     expect(numLandTiles).toBeGreaterThanOrEqual(NUM_CLUSTER_POINTS);
   });
