@@ -46,16 +46,18 @@ const getRandomClusterPoint = (
   // larger clusterSpread means larger islands
 
   // randomize position offset
-  const xoff = Math.round(Math.random() * clusterSpread) - clusterSpread * 0.5;
-  const yoff = Math.round(Math.random() * clusterSpread) - clusterSpread * 0.5;
+  const xOffset =
+    Math.round(Math.random() * clusterSpread) - clusterSpread * 0.5;
+  const yOffset =
+    Math.round(Math.random() * clusterSpread) - clusterSpread * 0.5;
 
   // create new point
-  const randomPoint: Point = {
-    x: centerPoint.x + xoff,
-    y: centerPoint.y + yoff,
+  const randomClusterPoint: Point = {
+    x: centerPoint.x + xOffset,
+    y: centerPoint.y + yOffset,
   };
 
-  return randomPoint;
+  return randomClusterPoint;
 };
 
 const expandPoint = (
@@ -68,29 +70,26 @@ const expandPoint = (
   // this makes "square" islands which is the best for gameplay
   // returns an array of points
 
-  let expandedPoints: Point[] = []; // should be const
+  let expandedPoints: Point[] = [];
 
-  // expand point in a square
+  // expand from center in a square
   for (let y = -radius; y < radius; y++) {
     for (let x = -radius; x < radius; x++) {
+      // creates new point
+      const newPoint: Point = {
+        x: point.x + x,
+        y: point.y + y,
+      };
+
       // checks if point is within the map limits
       if (
-        point.x + x >= 0 &&
-        point.x + x < mapWidth &&
-        point.y + y >= 0 &&
-        point.y + y < mapHeight
+        newPoint.x >= 0 &&
+        newPoint.x < mapWidth &&
+        newPoint.y >= 0 &&
+        newPoint.y < mapHeight
       ) {
-        // creates new point
-        const newPoint: Point = {
-          x: point.x + x,
-          y: point.y + y,
-        };
-
-        // checks for undefined properties, just in case
-        if (newPoint.x === undefined || newPoint.y === undefined) break;
-
         // add point to array
-        expandedPoints.push(newPoint);
+        expandedPoints = [...expandedPoints, newPoint];
       }
     }
   }
@@ -119,17 +118,17 @@ const generateIsland = (
   const centerPoint = getRandomCenterPoint(mapWidth, mapHeight);
 
   // array of points that will be used to generate the island
-  const clusterPoints: Point[] = [centerPoint];
+  let clusterPoints: Point[] = [centerPoint];
 
   // generate cluster points and add them to the clusterPoints array
-  for (let i = 0; i < amountClusterPoints - 1; i++) {
+  for (let i = 0; i < amountClusterPoints; i++) {
     // generates a new cluster point
     let newClusterPoint = getRandomClusterPoint(centerPoint, clusterSpread);
 
     while (
-      newClusterPoint.x < 0 + borderInset ||
+      newClusterPoint.x < borderInset ||
       newClusterPoint.x >= mapWidth - borderInset ||
-      newClusterPoint.y < 0 + borderInset ||
+      newClusterPoint.y < borderInset ||
       newClusterPoint.y >= mapHeight - borderInset ||
       newClusterPoint.x === undefined ||
       newClusterPoint.y === undefined
@@ -139,12 +138,13 @@ const generateIsland = (
     }
 
     // add cluster point to array
-    clusterPoints.push(newClusterPoint);
+    clusterPoints = [...clusterPoints, newClusterPoint];
   }
 
   // filters out points that are outside the map limits, just in case
   const islandPoints = clusterPoints.filter(
-    (point) => point.x >= 0 && point.y >= 0
+    (point) =>
+      point.x >= 0 && point.y >= 0 && point.x < mapWidth && point.y < mapHeight
   );
 
   // expands each of the island points
@@ -247,21 +247,21 @@ const generateIslands = (
 
 const smoothenIslands = (
   islandMap: WorldMap
-): { map: WorldMap; count: number } => {
+): { smoothendMap: WorldMap; count: number } => {
   // flood fills the islandMap to create a "water" map
   // smooths the map by removing small inlets and inaccessible areas
 
-  let map: WorldMap = [...islandMap];
   let count = 0;
 
   const rec = (x: number, y: number, target_color: number, color: number) => {
     // recursive function to flood fill the map
 
     // check if point is within map limits
-    if (x < 0 || y < 0 || x >= map[0].length || y >= map.length) return;
+    if (x < 0 || y < 0 || x >= islandMap[0].length || y >= islandMap.length)
+      return;
 
     // get value of point
-    const value = map[y][x];
+    const value = islandMap[y][x];
 
     // check if point has already been visited
     if (value === color) return;
@@ -270,29 +270,29 @@ const smoothenIslands = (
     if (value !== target_color) return;
 
     // eliminate vertical small inlets
-    if (y - 1 >= 0 && y + 1 < map.length) {
-      if (map[y - 1][x] === 1 && map[y + 1][x] === 1) {
+    if (y - 1 >= 0 && y + 1 < islandMap.length) {
+      if (islandMap[y - 1][x] === 1 && islandMap[y + 1][x] === 1) {
         return;
       }
-    } else if (y - 1 < 0 && map[y + 1][x] === 1) {
+    } else if (y - 1 < 0 && islandMap[y + 1][x] === 1) {
       return;
-    } else if (y + 1 >= map.length && map[y - 1][x] === 1) {
+    } else if (y + 1 >= islandMap.length && islandMap[y - 1][x] === 1) {
       return;
     }
 
     // eliminate horizontal small inlets
-    if (x - 1 >= 0 && x + 1 < map[0].length) {
-      if (map[y][x - 1] === 1 && map[y][x + 1] === 1) {
+    if (x - 1 >= 0 && x + 1 < islandMap[0].length) {
+      if (islandMap[y][x - 1] === 1 && islandMap[y][x + 1] === 1) {
         return;
       }
-    } else if (x - 1 < 0 && map[y][x + 1] === 1) {
+    } else if (x - 1 < 0 && islandMap[y][x + 1] === 1) {
       return;
-    } else if (x + 1 >= map[0].length && map[y][x - 1] === 1) {
+    } else if (x + 1 >= islandMap[0].length && islandMap[y][x - 1] === 1) {
       return;
     }
 
     // set visited
-    map[y][x] = color;
+    islandMap[y][x] = color;
 
     // increase water tile count
     count++;
@@ -310,16 +310,16 @@ const smoothenIslands = (
   rec(0, 0, 0, 2);
 
   // give all water tiles the same value
-  for (let y = 0; y < map.length; y++) {
-    for (let x = 0; x < map[0].length; x++) {
-      if (map[y][x] === 0) {
-        map[y][x] = 1;
+  for (let y = 0; y < islandMap.length; y++) {
+    for (let x = 0; x < islandMap[0].length; x++) {
+      if (islandMap[y][x] === 0) {
+        islandMap[y][x] = 1;
       }
     }
   }
 
   // returns the map and the number of water tiles
-  return { map, count };
+  return { smoothendMap: islandMap, count };
 };
 
 export const generateIslandMap = (
@@ -340,7 +340,7 @@ export const generateIslandMap = (
       keepFromBorder
     );
 
-    const { map, count } = smoothenIslands(islandMap);
+    const { smoothendMap: map, count } = smoothenIslands(islandMap);
 
     // keep generating new maps until one has enough water
     // lower water ratio if too few maps are valid
@@ -355,4 +355,5 @@ export const exportedForTesting = {
   getRandomClusterPoint,
   expandPoint,
   getRandomCenterPoint,
+  generateIsland,
 };

@@ -1,4 +1,4 @@
-import { exportedForTesting } from "./islandGeneration.js";
+import { exportedForTesting, printIslandMap } from "./islandGeneration.js";
 import { Point } from "../types.js";
 import { findVariance } from "./utils/testingUtils.js";
 
@@ -7,6 +7,7 @@ const {
   getRandomClusterPoint,
   expandPoint,
   getRandomCenterPoint,
+  generateIsland,
 } = exportedForTesting;
 
 describe("createBlankWorldMap", () => {
@@ -125,6 +126,65 @@ describe("expandPoint", () => {
 
       // expect no change in length
       expect(pointArray.length).toBe(noDuplicates.length);
+    });
+  });
+});
+
+describe("generateIsland", () => {
+  const WIDTH = 20;
+  const HEIGHT = 20;
+  const NUM_CLUSTER_POINTS = 8;
+  const NUM_CLUSTER_SPREAD = 4;
+  const islandMap = generateIsland(
+    WIDTH,
+    HEIGHT,
+    NUM_CLUSTER_POINTS,
+    NUM_CLUSTER_SPREAD,
+    false
+  );
+
+  test("map should have correct width and height", () => {
+    for (const row of islandMap) {
+      expect(row.length).toBe(WIDTH);
+    }
+    expect(islandMap.length).toBe(HEIGHT);
+  });
+
+  test("islandMap has at least as many land tiles as cluster points", () => {
+    let numLandTiles = 0;
+    islandMap.forEach((row) => {
+      numLandTiles += row.reduce((acc, curr) => {
+        if (curr === 1) {
+          return acc + 1;
+        }
+        return acc;
+      }, 0);
+    });
+    console.log(islandMap, numLandTiles);
+
+    expect(numLandTiles).toBeGreaterThanOrEqual(NUM_CLUSTER_POINTS);
+  });
+
+  test("island should not be generated on borders if keepFromBorder", () => {
+    const islandMapKeepFromBorder = generateIsland(
+      WIDTH,
+      HEIGHT,
+      NUM_CLUSTER_POINTS,
+      NUM_CLUSTER_SPREAD,
+      true
+    );
+
+    islandMapKeepFromBorder.forEach((row, indexY) => {
+      row.forEach((el, indexX) => {
+        if (
+          indexY === 0 ||
+          indexY === HEIGHT - 1 ||
+          indexX === 0 ||
+          indexX === WIDTH - 1
+        ) {
+          expect(el).toBe(0);
+        }
+      });
     });
   });
 });

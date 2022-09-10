@@ -5,7 +5,7 @@
   "description": "",
   "main": "out/index.js",
   "scripts": {
-    "start": "npx tsc && ts-node build/index.js",
+    "start": "npx tsc && node out/src/index.js",
     "test": "npx tsc && NODE_OPTIONS=--experimental-vm-modules npx jest --verbose ./out",
     "test:coverage": "npx tsc && NODE_OPTIONS=--experimental-vm-modules npx jest --coverage ./out"
   },
